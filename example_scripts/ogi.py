@@ -16,14 +16,15 @@ def sendcmd(cmd):
         while ser.in_waiting:  # there is data in the buffer - print until clear
             print(ser.read(64).decode("utf-8"))
 
-        # ready to send
-        ser.write(cmd.encode("utf-8"))
+        # ready to send - appending a '\r' will force the OGI3 to respond faster instead
+        # of waiting for a 100 ms timeout
+        ser.write((cmd + "\r").encode("utf-8"))
 
         # wait for response
         while True:
             if ser.in_waiting:
                 # read back response
-                mystr = ser.read_until("\r").decode("utf-8")
+                mystr = ser.read_until(b"\r").decode("utf-8")
 
                 # check that return message starts with our command
                 if not mystr.startswith(cmd):
