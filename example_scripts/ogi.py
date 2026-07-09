@@ -72,8 +72,8 @@ def connect_go():
         ser.rts = False
 
         # Wait a moment for settings to take effect
-        time.sleep(0.5)
         ser.open()
+        time.sleep(1.0)
 
     except:
         print(
