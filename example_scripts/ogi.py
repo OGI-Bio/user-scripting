@@ -1,4 +1,14 @@
 # Provides functions to connect to bioreactor and send commands.
+# Version 0.2.0
+# Tested with Python 3.13.5 and OGI3 firmware 4.10.0
+
+# Copyright (c) 2026 OGI Bio Ltd
+#
+# Licensed under the Creative Commons Attribution 4.0 International
+# License (CC BY 4.0).
+# You are free to use, modify, and redistribute this work, provided
+# appropriate attribution is given.
+# License: https://creativecommons.org/licenses/by/4.0/
 
 import sys
 import time
@@ -24,7 +34,7 @@ def sendcmd(cmd):
         while True:
             if ser.in_waiting:
                 # read back response
-                mystr = ser.read_until(b"\r").decode("utf-8")
+                mystr = ser.read_until(b"\r").decode("utf-8").replace("\r", "")
 
                 # check that return message starts with our command
                 if not mystr.startswith(cmd):
@@ -37,6 +47,7 @@ def sendcmd(cmd):
                 if mystr.find("ERR") != -1:
                     print(mystr.rstrip().partition("ERR"))
                     if "exit_on_fail" in ogi_flags:
+                        print("exiting due to error") # BW added for consistency with other errors being printed to std
                         sys.exit()
                     return
 
@@ -57,17 +68,15 @@ def sendcmd(cmd):
 
 ## Serial connection
 def connect_go():
-    global ser
+    global ser, port_name
 
     ser = s.Serial()
     try:
-        ser.port = next(
-            stl.grep("COM*")
-        ).name  # Try to automatically find the port - replace with eg 'COM15' if it doesn't work
+        ser.port = port_name
         ser.baudrate = 115200
-        ser.timeout = 1
+        ser.timeout = 10 # required to avoid returning before the command has been executed. Relevant mostly for "motors"
 
-        # Disable DTR to prevent Arduino auto-reset
+        # Disable DTR to prevent microprocessor auto-reset
         ser.dtr = False
         ser.rts = False
 
@@ -89,8 +98,8 @@ def connect_go():
 
 
 ## Serial connection
-def connect_OGI3(automatic_reconnect=True, exit_on_fail=False, verbose=False):
-    global ser, ogi_flags
+def connect_OGI3(port=None, automatic_reconnect=False, exit_on_fail=False, verbose=False):
+    global ser, ogi_flags, port_name
 
     ogi_flags = set()
 
@@ -100,6 +109,27 @@ def connect_OGI3(automatic_reconnect=True, exit_on_fail=False, verbose=False):
         ogi_flags.add("exit_on_fail")
     if verbose:
         ogi_flags.add('verbose')
+
+    if port is None:
+        print("searching for ports")
+
+        ports = stl.comports() # list all available ports
+        for p in ports:
+            print(p)
+            # Look for the bioreactor
+            if ("Arduino" in p.description or
+                "ttyACM" in p.device or
+                "USB Serial" in p.description):
+
+                port_name = p.device
+                print("auto-detected port:", port_name)
+                break
+        else:
+            raise Exception("No OGI3 port found")
+    else:
+        port_name = port
+        print("using specified port:", port_name)
+
 
     if not connect_go():
         sys.exit()
