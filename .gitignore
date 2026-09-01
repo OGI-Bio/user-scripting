@@ -5,4 +5,5 @@
 # These are the filetypes important to our repo, so un-ignore them:
 !**.py
 !**.md
+!**.png
 !.gitignore

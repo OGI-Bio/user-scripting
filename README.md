@@ -49,7 +49,13 @@ Controls OD of two flasks via chemostat to generate a heart shape:
 <img width="822" height="591" alt="valentine" src="https://github.com/user-attachments/assets/8f3ff9d0-2a14-4ea2-a348-09bd9f1aa548" />
 
 ### `temperature_v_growthrate.py`
-Toggles turbidostat OD target between 0.1 and 0.4 to get repeated growth cruves; after 4 hrs increases the temperature from 30 C to 37 C.
+Toggles turbidostat OD target between 0.1 and 0.4 to get repeated growth curves; after 4 hrs increases the temperature from 30 C to 37 C.
 
 <img width="953" height="662" alt="temperature_v_growthrate" src="https://github.com/user-attachments/assets/3f3d8dbb-7a5e-40fc-8b49-195a5179bd61" />
 
+### `media_switch.py`
+Controls pumps directly to periodically dilute culture, switching medium (by switching from input -> output pump) partway through.
+
+Note: Requires external liquid control module!
+
+![Growth rate of E. coli with media switch](./imgs/Media_switch_growthrate.png)
